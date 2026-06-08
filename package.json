@@ -1,0 +1,18 @@
+{
+  "name": "billarmania",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:web": "pnpm --filter web dev",
+    "build:all": "pnpm --filter './apps/*' build",
+    "lint:all": "pnpm --filter './apps/*' lint"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}
