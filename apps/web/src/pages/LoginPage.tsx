@@ -37,7 +37,7 @@ export function LoginPage() {
         headers: { Authorization: `Bearer ${auth.access_token}` },
       });
       login(auth.access_token, me);
-      navigate('/dashboard');
+      navigate(me.role === 'CAJERO' ? '/dashboard' : '/admin');
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -56,7 +56,7 @@ export function LoginPage() {
             <span className="font-semibold text-slate-900">Billarmania</span>
           </div>
           <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
-          <CardDescription>Panel operativo del cajero</CardDescription>
+          <CardDescription>Acceso para cajeros y administradores</CardDescription>
         </CardHeader>
 
         <CardContent>

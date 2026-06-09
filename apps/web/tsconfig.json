@@ -16,11 +16,15 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "5.0",
     "paths": {
       "@/*": ["./src/*"],
       "@billarmania/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "../../packages/shared" }
+  ]
 }

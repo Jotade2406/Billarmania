@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateBranchDto, UpdateBranchDto } from './dto/branch.dto';
+import { CreatePaymentMethodDto } from './dto/payment-method.dto';
 
 @Injectable()
 export class BranchesService {
@@ -26,6 +28,106 @@ export class BranchesService {
       where: { branchId },
       select: { id: true, label: true, status: true, hourlyRate: true },
       orderBy: { label: 'asc' },
+    });
+  }
+
+  async create(chainId: string, dto: CreateBranchDto) {
+    return this.prisma.branch.create({
+      data: { ...dto, chainId },
+    });
+  }
+
+  async update(id: string, dto: UpdateBranchDto) {
+    const branch = await this.prisma.branch.findUnique({ where: { id } });
+    if (!branch) throw new NotFoundException('Sucursal no encontrada');
+    return this.prisma.branch.update({ where: { id }, data: dto });
+  }
+
+  async remove(id: string) {
+    const branch = await this.prisma.branch.findUnique({ where: { id } });
+    if (!branch) throw new NotFoundException('Sucursal no encontrada');
+    return this.prisma.branch.delete({ where: { id } });
+  }
+
+  async createPaymentMethod(branchId: string, dto: CreatePaymentMethodDto) {
+    return this.prisma.paymentMethod.create({
+      data: { ...dto, branchId },
+    });
+  }
+
+  async removePaymentMethod(pmId: string) {
+    return this.prisma.paymentMethod.update({
+      where: { id: pmId },
+      data: { isActive: false },
+    });
+  }
+
+  async getStats(branchId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [tables, reservationsToday, pendingReservations] = await Promise.all([
+      this.prisma.table.groupBy({
+        by: ['status'],
+        where: { branchId },
+        _count: true,
+      }),
+      this.prisma.reservation.count({
+        where: {
+          branchId,
+          createdAt: { gte: today, lt: tomorrow },
+        },
+      }),
+      this.prisma.reservation.count({
+        where: { branchId, status: 'EN_REVISION' },
+      }),
+    ]);
+
+    const statusMap = Object.fromEntries(tables.map((t) => [t.status, t._count]));
+    return {
+      tables: {
+        LIBRE: statusMap['LIBRE'] ?? 0,
+        OCUPADA: statusMap['OCUPADA'] ?? 0,
+        RESERVADA: statusMap['RESERVADA'] ?? 0,
+        FUERA_DE_SERVICIO: statusMap['FUERA_DE_SERVICIO'] ?? 0,
+        total: tables.reduce((acc, t) => acc + t._count, 0),
+      },
+      reservationsToday,
+      pendingReservations,
+    };
+  }
+
+  async findAllReservations(branchId: string, status?: string) {
+    return this.prisma.reservation.findMany({
+      where: {
+        branchId,
+        ...(status ? { status: status as any } : {}),
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        table: { select: { id: true, label: true } },
+        payment: { select: { id: true, proofUrl: true, status: true, amount: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+  }
+
+  async findStaff(branchId: string) {
+    return this.prisma.user.findMany({
+      where: { staffBranchId: branchId, role: 'CAJERO' },
+      select: { id: true, name: true, email: true, createdAt: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async findAllStaff() {
+    return this.prisma.user.findMany({
+      where: { role: 'CAJERO' },
+      select: { id: true, name: true, email: true, staffBranchId: true, createdAt: true },
+      orderBy: { name: 'asc' },
     });
   }
 }
