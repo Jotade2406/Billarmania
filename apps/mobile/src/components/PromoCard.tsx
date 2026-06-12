@@ -1,51 +1,66 @@
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ImageViewerModal } from './ImageViewerModal';
 import { C } from '../theme';
 import type { Promo } from '../hooks/usePromotions';
 
-/** Card de promoción: precio tachado, precio promo, ahorro y urgencia. */
+/** Card de promoción: precio tachado, precio promo, ahorro y urgencia. Tocar = imagen completa. */
 export function PromoCard({ promo, width = 270 }: { promo: Promo; width?: number }) {
+  const [viewerOpen, setViewerOpen] = useState(false);
   const fewLeft = promo.usesLeft != null && promo.usesLeft <= 5;
   const until = new Date(promo.validUntil);
 
+  const priceLine = `${promo.presentation.product.name}${promo.presentation.unitsPerSale > 1 ? ` (${promo.presentation.name})` : ''} — Bs ${Number(promo.promoPrice).toFixed(0)} en vez de Bs ${Number(promo.originalPrice).toFixed(0)} · ${promo.branch?.name ?? ''}`;
+
   return (
-    <View style={[s.card, { width }]}>
-      {promo.imageUrl ? (
-        <Image source={{ uri: promo.imageUrl }} style={s.image} resizeMode="cover" />
-      ) : (
-        <View style={s.imagePlaceholder}>
-          <Ionicons name="pricetag" size={26} color={C.accent} />
-        </View>
-      )}
+    <>
+      <TouchableOpacity activeOpacity={0.85} onPress={() => setViewerOpen(true)} style={[s.card, { width }]}>
+        {promo.imageUrl ? (
+          <Image source={{ uri: promo.imageUrl }} style={s.image} resizeMode="cover" />
+        ) : (
+          <View style={s.imagePlaceholder}>
+            <Ionicons name="pricetag" size={26} color={C.accent} />
+          </View>
+        )}
 
-      <View style={s.body}>
-        <Text style={s.branch} numberOfLines={1}>{promo.branch?.name}</Text>
-        <Text style={s.title} numberOfLines={1}>{promo.title}</Text>
-        <Text style={s.product} numberOfLines={1}>
-          {promo.presentation.product.name}
-          {promo.presentation.unitsPerSale > 1 && ` · ${promo.presentation.name}`}
-        </Text>
+        <View style={s.body}>
+          <Text style={s.branch} numberOfLines={1}>{promo.branch?.name}</Text>
+          <Text style={s.title} numberOfLines={1}>{promo.title}</Text>
+          <Text style={s.product} numberOfLines={1}>
+            {promo.presentation.product.name}
+            {promo.presentation.unitsPerSale > 1 && ` · ${promo.presentation.name}`}
+          </Text>
 
-        <View style={s.priceRow}>
-          <Text style={s.original}>Bs {Number(promo.originalPrice).toFixed(0)}</Text>
-          <Text style={s.promo}>Bs {Number(promo.promoPrice).toFixed(0)}</Text>
-          <View style={s.saveBadge}>
-            <Text style={s.saveText}>Ahorras Bs {promo.savings.toFixed(0)}</Text>
+          <View style={s.priceRow}>
+            <Text style={s.original}>Bs {Number(promo.originalPrice).toFixed(0)}</Text>
+            <Text style={s.promo}>Bs {Number(promo.promoPrice).toFixed(0)}</Text>
+            <View style={s.saveBadge}>
+              <Text style={s.saveText}>Ahorras Bs {promo.savings.toFixed(0)}</Text>
+            </View>
+          </View>
+
+          <View style={s.footer}>
+            <Text style={s.until}>
+              Hasta el {until.toLocaleDateString('es-BO', { day: 'numeric', month: 'short' })}
+            </Text>
+            {fewLeft && (
+              <View style={s.fewBadge}>
+                <Text style={s.fewText}>¡Solo quedan {promo.usesLeft}!</Text>
+              </View>
+            )}
           </View>
         </View>
+      </TouchableOpacity>
 
-        <View style={s.footer}>
-          <Text style={s.until}>
-            Hasta el {until.toLocaleDateString('es-BO', { day: 'numeric', month: 'short' })}
-          </Text>
-          {fewLeft && (
-            <View style={s.fewBadge}>
-              <Text style={s.fewText}>¡Solo quedan {promo.usesLeft}!</Text>
-            </View>
-          )}
-        </View>
-      </View>
-    </View>
+      <ImageViewerModal
+        visible={viewerOpen}
+        uri={promo.imageUrl}
+        title={promo.title}
+        description={promo.description ?? priceLine}
+        onClose={() => setViewerOpen(false)}
+      />
+    </>
   );
 }
 

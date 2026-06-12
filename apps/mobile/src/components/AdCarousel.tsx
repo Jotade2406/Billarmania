@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, FlatList, Image, Text, StyleSheet, Dimensions, TouchableOpacity, Linking } from 'react-native';
+import { View, FlatList, Image, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { useAds, registerAdView, type Ad } from '../hooks/useAds';
+import { ImageViewerModal } from './ImageViewerModal';
 import { C } from '../theme';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -10,6 +11,7 @@ const CARD_W = SCREEN_W - 36; // padding horizontal del scroll (18 × 2)
 export function AdCarousel() {
   const { data: ads = [] } = useAds();
   const [index, setIndex] = useState(0);
+  const [viewer, setViewer] = useState<Ad | null>(null);
   const listRef = useRef<FlatList<Ad>>(null);
   const viewed = useRef<Set<string>>(new Set());
 
@@ -54,8 +56,8 @@ export function AdCarousel() {
         }}
         renderItem={({ item }) => (
           <TouchableOpacity
-            activeOpacity={item.linkUrl ? 0.85 : 1}
-            onPress={() => item.linkUrl && Linking.openURL(item.linkUrl).catch(() => {})}
+            activeOpacity={0.85}
+            onPress={() => setViewer(item)}
             style={{ width: CARD_W }}
           >
             <View style={s.card}>
@@ -68,6 +70,16 @@ export function AdCarousel() {
             </View>
           </TouchableOpacity>
         )}
+      />
+
+      {/* Imagen completa */}
+      <ImageViewerModal
+        visible={!!viewer}
+        uri={viewer?.imageUrl ?? null}
+        title={viewer?.title}
+        description={viewer?.description}
+        linkUrl={viewer?.linkUrl}
+        onClose={() => setViewer(null)}
       />
       {/* Indicadores */}
       {ads.length > 1 && (

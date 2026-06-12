@@ -230,8 +230,9 @@ export function VentasPage({ branchId }: { branchId: string }) {
           Volver a ventas
         </button>
 
-        <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="bg-brand-ink px-6 py-5">
+        {/* Sin overflow-hidden: el dropdown de productos debe poder salir del card */}
+        <div className="bg-white rounded-2xl border border-border shadow-sm">
+          <div className="bg-brand-ink px-6 py-5 rounded-t-2xl">
             <h2 className="text-lg font-bold text-brand-cream">Registrar nueva venta</h2>
             <p className="text-xs text-brand-mint mt-0.5">Completa los datos y agrega los productos vendidos</p>
           </div>

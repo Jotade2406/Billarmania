@@ -32,7 +32,7 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Credenciales incorrectas');
 
-    return this.signToken(user.id, user.email, user.role, user.name, user.phone);
+    return this.signToken(user.id, user.email, user.role, user.name, user.phone, user.avatarUrl);
   }
 
   async getMe(userId: string) {
@@ -141,11 +141,25 @@ export class AuthService {
     }, { timeout: 30000, maxWait: 10000 });
   }
 
-  private signToken(userId: string, email: string, role: string, name?: string, phone?: string | null) {
+  private signToken(
+    userId: string,
+    email: string,
+    role: string,
+    name?: string,
+    phone?: string | null,
+    avatarUrl?: string | null,
+  ) {
     const token = this.jwt.sign({ sub: userId, email, role });
     return {
       access_token: token,
-      user: { id: userId, email, role, name: name ?? '', phone: phone ?? undefined },
+      user: {
+        id: userId,
+        email,
+        role,
+        name: name ?? '',
+        phone: phone ?? undefined,
+        avatarUrl: avatarUrl ?? undefined,
+      },
     };
   }
 }
