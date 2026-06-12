@@ -28,13 +28,17 @@ export class ReservationsService {
       data: { status: TableStatus.RESERVADA },
     });
 
+    const depositAmount = table.hourlyRate
+      ? table.hourlyRate.mul(2)
+      : branch.depositAmount;
+
     return this.prisma.reservation.create({
       data: {
         tableId: dto.tableId,
         branchId: dto.branchId,
         userId,
         reservedFor: new Date(dto.reservedFor),
-        depositAmount: branch.depositAmount,
+        depositAmount,
         status: ReservationStatus.PENDIENTE_PAGO,
       },
     });
@@ -151,7 +155,7 @@ export class ReservationsService {
       }),
       this.prisma.table.update({
         where: { id: reservation.tableId },
-        data: { status: TableStatus.OCUPADA },
+        data: { status: TableStatus.OCUPADA, occupiedAt: new Date() },
       }),
     ]);
 
@@ -193,7 +197,7 @@ export class ReservationsService {
       where: { userId },
       include: {
         table: { select: { label: true } },
-        branch: { select: { name: true, address: true } },
+        branch: { select: { id: true, name: true, address: true } },
         payment: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -205,7 +209,7 @@ export class ReservationsService {
       where: { id: reservationId },
       include: {
         table: { select: { label: true } },
-        branch: { select: { name: true, address: true } },
+        branch: { select: { name: true, address: true, confirmationTimeoutMin: true, depositAmount: true, reservationGraceMinutes: true } },
         user: { select: { name: true, phone: true } },
         payment: true,
       },

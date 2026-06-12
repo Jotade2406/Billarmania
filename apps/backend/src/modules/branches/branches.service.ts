@@ -26,7 +26,7 @@ export class BranchesService {
   findTables(branchId: string) {
     return this.prisma.table.findMany({
       where: { branchId },
-      select: { id: true, label: true, status: true, hourlyRate: true },
+      select: { id: true, label: true, status: true, hourlyRate: true, occupiedAt: true },
       orderBy: { label: 'asc' },
     });
   }
@@ -34,6 +34,23 @@ export class BranchesService {
   async create(chainId: string, dto: CreateBranchDto) {
     return this.prisma.branch.create({
       data: { ...dto, chainId },
+    });
+  }
+
+  async createDirect(adminId: string, dto: CreateBranchDto) {
+    const chain = await this.prisma.chain.create({
+      data: { name: dto.name, ownerId: adminId },
+    });
+    return this.prisma.branch.create({ data: { ...dto, chainId: chain.id } });
+  }
+
+  async findAll() {
+    return this.prisma.branch.findMany({
+      include: {
+        chain: { select: { id: true, name: true } },
+        _count: { select: { tables: true, staff: true } },
+      },
+      orderBy: { name: 'asc' },
     });
   }
 
@@ -125,8 +142,17 @@ export class BranchesService {
 
   async findAllStaff() {
     return this.prisma.user.findMany({
-      where: { role: 'CAJERO' },
-      select: { id: true, name: true, email: true, staffBranchId: true, createdAt: true },
+      where: { role: { in: ['CAJERO', 'DUENO'] } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        avatarUrl: true,
+        createdAt: true,
+        staffBranch: { select: { id: true, name: true } },
+      },
       orderBy: { name: 'asc' },
     });
   }

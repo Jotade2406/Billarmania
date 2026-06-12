@@ -34,7 +34,11 @@ export class ChainsService {
   findBranches(chainId: string) {
     return this.prisma.branch.findMany({
       where: { chainId },
-      include: { _count: { select: { tables: true } } },
+      include: {
+        chain: { select: { id: true, name: true } },
+        tables: { select: { status: true } },
+        _count: { select: { tables: true } },
+      },
     });
   }
 

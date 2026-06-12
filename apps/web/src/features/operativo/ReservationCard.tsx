@@ -138,7 +138,7 @@ export function ReservationCard({ reservation, onResolved }: Props) {
           <div className="flex gap-2 pt-1">
             <Button
               size="sm"
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="flex-1 bg-brand-green hover:bg-brand-deep text-white"
               onClick={() => setDialog('confirm')}
               disabled={loading}
             >
@@ -173,7 +173,7 @@ export function ReservationCard({ reservation, onResolved }: Props) {
               Cancelar
             </Button>
             <Button
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-brand-green hover:bg-brand-deep"
               onClick={() => handleAction('confirm')}
               disabled={loading}
             >

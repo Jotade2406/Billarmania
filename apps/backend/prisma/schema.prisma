@@ -56,6 +56,7 @@ model User {
   passwordHash String
   name         String
   phone        String?
+  avatarUrl    String?
   role         Role    @default(CLIENTE)
 
   staffBranchId String?
@@ -64,6 +65,8 @@ model User {
   ownedChains      Chain[]   @relation("ChainOwner")
   reservations     Reservation[]
   reviewedPayments Payment[] @relation("PaymentReviewer")
+  sales            Sale[]    @relation("CashierSales")
+  voidedInvoices   Invoice[] @relation("InvoiceVoider")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -103,6 +106,11 @@ model Branch {
   reservations   Reservation[]
   paymentMethods PaymentMethod[]
   staff          User[]          @relation("BranchStaff")
+  products       Product[]
+  sales          Sale[]
+  invoices       Invoice[]
+  advertisements Advertisement[]
+  promotions     Promotion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -118,6 +126,7 @@ model Table {
   label      String
   status     TableStatus @default(LIBRE)
   hourlyRate Decimal?    @db.Decimal(10, 2)
+  occupiedAt DateTime?
 
   reservations Reservation[]
 
@@ -192,4 +201,192 @@ model PaymentMethod {
   updatedAt DateTime @updatedAt
 
   @@index([branchId])
+}
+
+// ──────────────────── INVENTARIO & VENTAS ────────────────────
+
+enum StockMovementType {
+  ENTRADA
+  SALIDA
+  AJUSTE
+}
+
+enum SaleStatus {
+  COMPLETADA
+  ANULADA
+}
+
+enum InvoiceStatus {
+  ACTIVA
+  PENDIENTE_ANULACION
+  ANULADA
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  branchId      String
+  branch        Branch   @relation(fields: [branchId], references: [id])
+  name          String
+  description   String?
+  category      String?
+  imageUrl      String?
+  price         Decimal  @db.Decimal(10, 2) // precio unidad base (compat POS)
+  cost          Decimal? @db.Decimal(10, 2)
+  stock         Int      @default(0) // SIEMPRE en unidades mínimas
+  unit          String   @default("unidad") // "unidad" | "par" | "botella"
+  minStockAlert Int      @default(10)
+  isActive      Boolean  @default(true)
+
+  presentations  Presentation[]
+  stockMovements StockMovement[]
+  saleItems      SaleItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId])
+}
+
+model Presentation {
+  id           String  @id @default(cuid())
+  productId    String
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name         String // "Suelta", "Media docena", "Cajetilla"
+  description  String? // "6 cervezas"
+  unitsPerSale Int     @default(1) // unidades de stock que descuenta
+  price        Decimal @db.Decimal(10, 2)
+  imageUrl     String?
+  isActive     Boolean @default(true)
+
+  saleItems  SaleItem[]
+  promotions Promotion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model StockMovement {
+  id        String            @id @default(cuid())
+  productId String
+  product   Product           @relation(fields: [productId], references: [id])
+  type      StockMovementType
+  quantity  Int
+  notes     String?
+  userId    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+model Sale {
+  id        String     @id @default(cuid())
+  branchId  String
+  branch    Branch     @relation(fields: [branchId], references: [id])
+  cashierId String
+  cashier   User       @relation("CashierSales", fields: [cashierId], references: [id])
+  subtotal      Decimal    @db.Decimal(10, 2)
+  total         Decimal    @db.Decimal(10, 2)
+  customerName  String?
+  paymentMethod String?
+  notes         String?
+  status        SaleStatus @default(COMPLETADA)
+
+  // Cobro de mesa (sesión de juego)
+  tableLabel     String?
+  tableMinutes   Int?
+  tableAmount    Decimal? @db.Decimal(10, 2)
+  prepaidApplied Decimal? @db.Decimal(10, 2)
+
+  items   SaleItem[]
+  invoice Invoice?
+
+  createdAt DateTime @default(now())
+
+  @@index([branchId])
+  @@index([cashierId])
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  saleId    String
+  sale      Sale    @relation(fields: [saleId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  // null = venta legacy por unidad (stockDeducted = quantity)
+  presentationId String?
+  presentation   Presentation? @relation(fields: [presentationId], references: [id])
+  stockDeducted  Int?
+
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
+
+  @@index([saleId])
+}
+
+model Advertisement {
+  id          String    @id @default(cuid())
+  branchId    String
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  title       String
+  description String?
+  imageUrl    String
+  linkUrl     String?
+  position    Int       @default(0)
+  isActive    Boolean   @default(true)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  views       Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, isActive])
+}
+
+model Promotion {
+  id             String       @id @default(cuid())
+  branchId       String
+  branch         Branch       @relation(fields: [branchId], references: [id])
+  presentationId String
+  presentation   Presentation @relation(fields: [presentationId], references: [id])
+  title          String
+  description    String?
+  imageUrl       String?
+  originalPrice  Decimal      @db.Decimal(10, 2) // snapshot al crear
+  promoPrice     Decimal      @db.Decimal(10, 2)
+  validFrom      DateTime
+  validUntil     DateTime
+  isActive       Boolean      @default(true)
+  maxUses        Int?
+  currentUses    Int          @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, isActive])
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  saleId        String        @unique
+  sale          Sale          @relation(fields: [saleId], references: [id])
+  branchId      String
+  branch        Branch        @relation(fields: [branchId], references: [id])
+  invoiceNumber String
+  status        InvoiceStatus @default(ACTIVA)
+
+  voidReason String?
+  voidedById String?
+  voidedBy   User?     @relation("InvoiceVoider", fields: [voidedById], references: [id])
+  voidedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([branchId])
+  @@unique([branchId, invoiceNumber])
 }

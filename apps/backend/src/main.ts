@@ -4,7 +4,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // bodyParser: false para reemplazarlo con límite mayor (imágenes base64 en QR)
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  app.use(require('body-parser').json({ limit: '10mb' }));
+  app.use(require('body-parser').urlencoded({ limit: '10mb', extended: true }));
 
   app.setGlobalPrefix('api');
 
@@ -16,7 +19,8 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3001'],
+    // null = apps nativas (Expo Go / APK); localhost = web dev
+    origin: (origin, cb) => cb(null, true),
     credentials: true,
   });
 

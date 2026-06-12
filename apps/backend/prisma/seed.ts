@@ -6,6 +6,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Iniciando seed...');
 
+  // Super Admin
+  await prisma.user.upsert({
+    where: { email: 'juandiegosalazarm15@gmail.com' },
+    update: {},
+    create: {
+      email: 'juandiegosalazarm15@gmail.com',
+      name: 'Juan Diego Salazar',
+      passwordHash: await bcrypt.hash('CALLE1DXVD2', 10),
+      role: 'SUPER_ADMIN',
+    },
+  });
+
   // Dueño
   const dueno = await prisma.user.upsert({
     where: { email: 'dueno@billarmania.bo' },
@@ -101,8 +113,9 @@ async function main() {
   console.log('✅ Seed completado');
   console.log('');
   console.log('  Usuarios creados:');
-  console.log(`  - Cajero: cajero@billarmania.bo / cajero123`);
-  console.log(`  - Dueño:  dueno@billarmania.bo  / admin123`);
+  console.log(`  - SuperAdmin: juandiegosalazarm15@gmail.com / CALLE1DXVD2`);
+  console.log(`  - Cajero:     cajero@billarmania.bo / cajero123`);
+  console.log(`  - Dueño:      dueno@billarmania.bo  / admin123`);
   console.log('');
   console.log(`  Sucursal: ${branch.name} (id: ${branch.id})`);
   console.log(`  Mesas: 8 mesas con distintos estados`);

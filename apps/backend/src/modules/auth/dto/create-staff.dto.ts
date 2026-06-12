@@ -1,4 +1,9 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsEnum } from 'class-validator';
+
+export enum StaffRole {
+  DUENO = 'DUENO',
+  CAJERO = 'CAJERO',
+}
 
 export class CreateStaffDto {
   @IsEmail()
@@ -14,6 +19,9 @@ export class CreateStaffDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @IsEnum(StaffRole)
+  role: StaffRole;
 
   @IsString()
   @IsOptional()

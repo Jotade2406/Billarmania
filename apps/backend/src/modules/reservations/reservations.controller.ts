@@ -1,9 +1,8 @@
-import { Controller, Post, Get, Param, Body, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Request, Query } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Public } from '../auth/decorators/public.decorator';
 
-@UseGuards(JwtAuthGuard)
 @Controller()
 export class ReservationsController {
   constructor(private reservations: ReservationsService) {}
@@ -14,11 +13,7 @@ export class ReservationsController {
   }
 
   @Post('reservations/:id/proof')
-  uploadProof(
-    @Param('id') id: string,
-    @Request() req,
-    @Body('proofUrl') proofUrl: string,
-  ) {
+  uploadProof(@Param('id') id: string, @Request() req, @Body('proofUrl') proofUrl: string) {
     return this.reservations.uploadProof(id, req.user.sub, proofUrl);
   }
 

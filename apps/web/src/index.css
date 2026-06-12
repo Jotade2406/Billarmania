@@ -4,26 +4,27 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Billarmania brand: deep #085041 · green #1D9E75 · cream #F5F5F0 · ink #121212 */
+    --background: 60 14% 97%;
+    --foreground: 0 0% 7%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 7%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 167 82% 17%;
+    --primary-foreground: 60 20% 96%;
+    --secondary: 160 15% 94%;
+    --secondary-foreground: 167 82% 17%;
+    --muted: 160 10% 95%;
+    --muted-foreground: 215 12% 45%;
+    --accent: 161 69% 37%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --border: 160 8% 90%;
+    --input: 160 8% 88%;
+    --ring: 161 69% 37%;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -55,5 +56,30 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* ── Impresión de tickets ───────────────────────────────────────────
+   Al imprimir, solo se muestra el contenido del recibo (.print-receipt),
+   en formato de ticket térmico de 80 mm. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-receipt,
+  .print-receipt * {
+    visibility: visible;
+  }
+  .print-receipt {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    padding: 4mm;
+    background: white;
+    font-size: 11px;
+  }
+  .no-print {
+    display: none !important;
   }
 }

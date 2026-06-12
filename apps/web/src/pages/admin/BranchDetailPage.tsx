@@ -38,7 +38,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  LIBRE: 'bg-emerald-100 text-emerald-800',
+  LIBRE: 'bg-brand-green/10 text-brand-deep',
   OCUPADA: 'bg-red-100 text-red-800',
   RESERVADA: 'bg-amber-100 text-amber-800',
   FUERA_DE_SERVICIO: 'bg-slate-100 text-slate-600',

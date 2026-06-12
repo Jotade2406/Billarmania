@@ -41,7 +41,7 @@ const STATUS_COLORS: Record<string, string> = {
   PENDIENTE_PAGO: 'bg-slate-100 text-slate-700',
   EN_REVISION: 'bg-amber-100 text-amber-800',
   CONFIRMADA: 'bg-blue-100 text-blue-800',
-  ACTIVA: 'bg-emerald-100 text-emerald-800',
+  ACTIVA: 'bg-brand-green/10 text-brand-deep',
   CANCELADA: 'bg-red-100 text-red-800',
   COMPLETADA: 'bg-slate-100 text-slate-600',
 };
@@ -192,7 +192,7 @@ export function ReservationsHistoryPage() {
                     </TableCell>
                     <TableCell className="text-sm">
                       {payment ? (
-                        <span className={payment.status === 'APROBADO' ? 'text-emerald-600 font-medium' : 'text-slate-500'}>
+                        <span className={payment.status === 'APROBADO' ? 'text-brand-green font-medium' : 'text-slate-500'}>
                           {payment.amount != null ? `Bs ${payment.amount}` : '—'}
                         </span>
                       ) : (

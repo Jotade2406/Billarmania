@@ -6,6 +6,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          deep: '#085041',
+          green: '#1D9E75',
+          mint: '#68dbae',
+          cream: '#F5F5F0',
+          ink: '#121212',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
